@@ -1,0 +1,8 @@
+bin
+build
+*.o
+tests/tests.log
+tests/darray_tests
+tests/darray_tests.exe
+*.gc*
+*.dSYM
