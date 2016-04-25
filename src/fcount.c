@@ -122,7 +122,7 @@ error:
 }
 
 static void try_help () {
-    printf("Try '%s -h' for more information.", program_name);
+    printf("Try '%s --help' for more information.\n", program_name);
     exit(1);
 }
 
@@ -207,8 +207,14 @@ int main (int argc, char *argv[])
                 be_quiet = 1;
                 break;
 
+            case ':':   /* missing option argument */
+                fprintf(stderr, "%s: option '-%c' requires an argument\n",
+                        argv[0], optopt);
+                break;
+
             // getopt_long already printed an error message.
             case '?':
+                try_help();
                 break;
 
             default:
@@ -220,62 +226,69 @@ int main (int argc, char *argv[])
         printf("field_count\trecords\tfile\n");
     }
 
-    int j = optind;  // A copy of optind (the number of options at the command-line)
+    int j = optind;  // A copy of optind (the number of options at the command-line),
+                     // which is not the same as argc, as that counts ALL
+                     // arguments.  (optind <= argc).
 
     // Process any remaining command line arguments (input files).
-    if (j <= argc) {
+    do {
 
-        do {
+        int fieldcount = 0;
+        char *filename = NULL;
+        char *line = NULL;
+        char *token = NULL;
+        FILE *fp = NULL;
+        size_t len = 0;   // allocated size for line
+        ssize_t read = 0; // num of chars read
+        DArray *darray = DArray_create(sizeof(FCount), 10);
 
-            char *filename = argv[j];
-            char *line = NULL;
-            size_t len = 0;   // allocated size for line
-            ssize_t read = 0; // num of chars read
-            char *token = NULL;
-            int fieldcount = 0;
-            DArray *darray = DArray_create(sizeof(FCount), 10);
 
+        // Assume STDIN if no additioal arguments, else loop through them:
+        if (optind == argc) {
+            filename = "-";
+        }
+        else if (optind < argc) {
+            filename = argv[j];
+        }
+        else if (optind > argc) {
+            break;
+        }
 
-            if (optind == argc) {
-                filename = "-";
+        if (filename[0] == '-') {
+            fp = stdin;
+        }
+        else {
+            fp = fopen(filename , "r");
+        }
+
+        check(fp != NULL, "Error opening file: %s.", filename);
+
+        while ((read = getline(&line, &len, fp)) != -1) {
+            fieldcount = 0;
+            while ((token = strsep(&line, delim))) {
+                fieldcount++;
             }
+            check(FC_array_push(darray, filename, fieldcount) == 0, "Error pushing element into darray.");
 
-            FILE *fp = NULL;
-
-            if (filename[0] == '-') {
-                fp = stdin;
+            // If we have more than one field count in this file, set the
+            // inconsistent_file flag to 2:
+            if (darray->end > 1) {
+                inconsistent_file = 2;
             }
-            else {
-                fp = fopen(filename , "r");
-            }
+        }
 
-            check(fp != NULL, "Error opening file: %s.", filename);
+        free(line);
+        fclose(fp);
 
-            while ((read = getline(&line, &len, fp)) != -1) {
-                fieldcount = 0;
-                while ((token = strsep(&line, delim))) {
-                    fieldcount++;
-                }
-                check(FC_array_push(darray, filename, fieldcount) == 0, "Error pushing element into darray.");
-                if (darray->end > 1) { // If we have more than one field count in this file
-                    inconsistent_file = 2;
-                }
-            }
+        if (!be_quiet) {
+            FC_array_print(darray);
+        }
+        FC_array_destroy(darray);
 
-            free(line);
-            fclose(fp);
+        j++;
 
-            if (!be_quiet) {
-                FC_array_print(darray);
-            }
-            FC_array_destroy(darray);
+    } while (j < argc);
 
-            j++;
-
-        } while (j < argc);
-
-    }
-  
     if (be_quiet) {
         return inconsistent_file;
     }
