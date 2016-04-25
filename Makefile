@@ -2,7 +2,7 @@ CFLAGS=-g -O2 -Wall -Wextra -Isrc -rdynamic -DNDEBUG $(OPTFLAGS)
 LIBS=libfcount.a
 PREFIX?=/usr/local
 
-SOURCES_LIB=src/darray.c
+SOURCES_LIB=src/darray.c src/fc_funcs.c
 OBJECTS_LIB=$(patsubst %.c,%.o,$(SOURCES_LIB))
 
 SOURCES_BIN=src/fcount.c
