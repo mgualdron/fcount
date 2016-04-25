@@ -19,7 +19,7 @@
 #include <string.h>
 #include <lcthw/darray.h>
 #include <lcthw/dbg.h>
-#include "fcount.h"
+#include "fc_funcs.h"
 
 static const char* program_name = "fcount";
 
