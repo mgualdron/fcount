@@ -2,21 +2,20 @@
 #define _FC_funcs_h
 
 typedef struct FCount {
-    char *filename;
     int fieldcount;
     int recordcount;
 } FCount;
 
-struct FCount *FC_create (char *filename, int fieldcount, int recordcount);
+struct FCount *FC_create (int fieldcount, int recordcount);
 
 void FC_destroy(FCount *fc);
 
 void FC_array_destroy(DArray *darray);
 
-void FC_print(FCount *fc);
+void FC_print(FCount *fc, char *filename);
 
-void FC_array_print(DArray *darray);
+void FC_array_print(DArray *darray, char *filename);
 
-int FC_array_push(DArray *darray, char *filename, int fieldcount);
+int FC_array_push(DArray *darray, int fieldcount);
 
 #endif

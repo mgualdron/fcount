@@ -143,10 +143,11 @@ int main (int argc, char *argv[])
         FILE *fp = NULL;
         size_t len = 0;   // allocated size for line
         ssize_t read = 0; // num of chars read
+
+        // The dynamic array that will hold all field counts:
         DArray *darray = DArray_create(sizeof(FCount), 10);
 
-
-        // Assume STDIN if no additioal arguments, else loop through them:
+        // Assume STDIN if no additional arguments, else loop through them:
         if (optind == argc) {
             filename = "-";
         }
@@ -171,7 +172,9 @@ int main (int argc, char *argv[])
             while ((token = strsep(&line, delim))) {
                 fieldcount++;
             }
-            check(FC_array_push(darray, filename, fieldcount) == 0, "Error pushing element into darray.");
+
+            // Add the count to the dynamic array:
+            check(FC_array_push(darray, fieldcount) == 0, "Error pushing element into darray.");
 
             // If we have more than one field count in this file, set the
             // inconsistent_file flag to 2:
@@ -184,7 +187,7 @@ int main (int argc, char *argv[])
         fclose(fp);
 
         if (!be_quiet) {
-            FC_array_print(darray);
+            FC_array_print(darray, filename);
         }
         FC_array_destroy(darray);
 
