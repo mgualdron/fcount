@@ -168,25 +168,30 @@ int main (int argc, char *argv[])
         check(fp != NULL, "Error opening file: %s.", filename);
 
         while ((read = getline(&line, &len, fp)) != -1) {
+
+            // strsep() will modify it's first argument, so we make a copy:
+            char *end = line;
+
             fieldcount = 0;
-            while ((token = strsep(&line, delim))) {
+            while ((token = strsep(&end, delim))) {
                 fieldcount++;
             }
 
             // Add the count to the dynamic array:
             check(FC_array_push(darray, fieldcount) == 0, "Error pushing element into darray.");
-
-            // If we have more than one field count in this file, set the
-            // inconsistent_file flag to 2:
-            if (darray->end > 1) {
-                inconsistent_file = 2;
-            }
         }
 
         free(line);
         fclose(fp);
 
+        // If we have more than one field count in this file, set the
+        // inconsistent_file flag to 2:
+        if (darray->end > 1) {
+            inconsistent_file = 2;
+        }
+
         if (!be_quiet) {
+            FC_array_sort(darray, FC_cmp);
             FC_array_print(darray, filename);
         }
         FC_array_destroy(darray);

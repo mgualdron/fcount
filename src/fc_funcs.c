@@ -4,7 +4,8 @@
 
 
 // A function to create FCount struct instances:
-struct FCount *FC_create (int fieldcount, int recordcount) {
+struct FCount *FC_create (int fieldcount, int recordcount)
+{
     FCount *fc = malloc(sizeof(FCount));
 
     // Did we successfully allocate space for a FCount?
@@ -96,3 +97,21 @@ error:
     return -1;
 }
 
+int FC_cmp(const void *a, const void *b)
+{
+    // a is a pointer to an element of an array holding a pointer to a struct:
+    int x = (*(FCount **)a)->recordcount;
+    int y = (*(FCount **)b)->recordcount;
+
+    debug("x = %d, y = %d, x-y = %d", x, y, x-y);
+    return (y - x);
+}
+
+int FC_array_sort(DArray *darray, FC_compare FC_cmp)
+{
+    debug("FCount  = %lu", sizeof(FCount));
+    debug("FCount* = %lu", sizeof(FCount *));
+    debug("void  * = %lu", sizeof(void *));
+    qsort(darray->contents, DArray_count(darray), sizeof(void *), FC_cmp);
+    return 0;
+}
