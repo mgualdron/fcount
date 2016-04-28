@@ -2,7 +2,8 @@
 // Program Name:    fcount.c
 //
 // Purpose:         To count the number of fields (columns) in a delimted
-//                  text file.
+//                  text file by scanning every row, and summarizing the
+//                  number of lines having each field count.
 //
 // Notes:           Use a struct to store the field-count along with the
 //                  frequency for each field-count.  Then with a dynamic
