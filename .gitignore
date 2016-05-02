@@ -1,5 +1,6 @@
 bin
 build
+libcsv
 *.o
 tests/tests.log
 tests/darray_tests
