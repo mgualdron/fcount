@@ -1,7 +1,7 @@
 CFLAGS=-g -O2 -Wall -Wextra -Isrc -rdynamic -DNDEBUG $(OPTFLAGS)
-INCLUDES=-I /usr/local/include -L /usr/local/lib
+INCLUDES=-I $(HOME)/local/include -L $(HOME)/local/lib
 LIBS=libfcount.a
-PREFIX?=$(HOME)
+PREFIX?=$(HOME)/local
 
 SOURCES_LIB=src/darray.c src/fc_funcs.c
 OBJECTS_LIB=$(patsubst %.c,%.o,$(SOURCES_LIB))
