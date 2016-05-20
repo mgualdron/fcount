@@ -277,7 +277,6 @@ int main (int argc, char *argv[])
             FC_array_print(darray, filename);
         }
         FC_array_destroy(darray);
-        DArray_clear(darray);
 
         j++;
 

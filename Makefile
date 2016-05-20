@@ -1,6 +1,7 @@
 CFLAGS=-g -O2 -Wall -Wextra -Isrc -rdynamic -DNDEBUG $(OPTFLAGS)
+INCLUDES=-I /usr/local/include -L /usr/local/lib
 LIBS=libfcount.a
-PREFIX?=/usr/local
+PREFIX?=$(HOME)
 
 SOURCES_LIB=src/darray.c src/fc_funcs.c
 OBJECTS_LIB=$(patsubst %.c,%.o,$(SOURCES_LIB))
@@ -36,7 +37,7 @@ tests:
 
 # The main executable
 $(TARGET_BIN):
-	$(CC) $(CFLAGS) -o $@ $(SOURCES_BIN) $(TARGET_LIB) libcsv/.libs/libcsv.a
+	$(CC) $(CFLAGS) -o $@ $(INCLUDES) $(SOURCES_BIN) $(TARGET_LIB) -lcsv
 
 # The Cleaner
 clean:
@@ -47,8 +48,8 @@ clean:
 
 # The Install
 install: all
-	install -d $(DESTDIR)/$(PREFIX)/bin/
-	install $(TARGET_BIN) $(DESTDIR)/$(PREFIX)/bin/
+	install -d $(PREFIX)/bin/
+	install $(TARGET_BIN) $(PREFIX)/bin/
 
 # The Checker
 check:
