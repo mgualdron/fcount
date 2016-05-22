@@ -21,11 +21,16 @@
 #include <lcthw/darray.h>
 #include <lcthw/dbg.h>
 #include "fc_funcs.h"
-#include "../libcsv/csv.h"
+#include <csv.h>
 
-static const char* program_name = "fcount";
+static const char *program_name = "fcount";
 static unsigned int fieldcount = 0;
 // static unsigned long linecount = 0;
+static char *delim_arg = "\t";
+static char *delim = "\t";
+static char delim_csv = CSV_COMMA;
+static char *quote_arg = NULL;
+static char quote = CSV_QUOTE;
 
 // The callbacks for CSV processing:
 void cb1 (void *s, size_t len, void *data);
@@ -53,11 +58,13 @@ More than one FILE can be specified.\n\
 
       printf ("\
 \n\
-  -d, --delimiter        the delimiting character for the input FILE(s)\n\
+  -d, --delimiter=DELIM  the delimiting character for the input FILE(s)\n\
   -H, --header           print a header line with the output counts\n\
   -q, --quiet            do not output counts, but return 2 if\n\
                          multiple field counts are detected\n\
                          i.e. the file is inconsistent.\n\
+      --csv              parse CSV files\n\
+  -Q, --csv-quote        CSV quoting character (ignored unless --csv)\n\
 ");
     }
 
@@ -70,6 +77,7 @@ static struct option long_options[] = {
     {"csv",       no_argument,       0, 'C'},
     {"header",    no_argument,       0, 'H'},
     {"delimiter", required_argument, 0, 'd'},
+    {"csv-quote", required_argument, 0, 'Q'},
     {"help",      no_argument,       0, 'h'},
     {0, 0, 0, 0}
 };
@@ -93,7 +101,7 @@ error:
     exit(1);
 }
 
-int file_count(char *filename, DArray *darray, char *delim)
+int file_count(char *filename, DArray *darray)
 {
     char *line = NULL;
     char *end = NULL;
@@ -152,11 +160,16 @@ int file_count_csv(char *filename, DArray *darray)
 
     check(csv_init(&p, 0) == 0, "Error initializing CSV parser.");
 
+    csv_set_delim(&p, delim_csv);
+
+    csv_set_quote(&p, quote);
+
     while ((bytes_read=fread(buf, 1, 1024, fp)) > 0) {
         check(csv_parse(&p, buf, bytes_read, cb1, cb2, darray) == bytes_read, "Error while parsing file: %s", csv_strerror(csv_error(&p)));
     }
 
-    csv_fini(&p, cb1, cb2, darray);
+    check(csv_fini(&p, cb1, cb2, darray) == 0, "Error finishing CSV processing.");
+
     csv_free(&p);
 
     fclose(fp);
@@ -170,18 +183,18 @@ error:
 int main (int argc, char *argv[])
 {
     int c;
-    char *delim = "\t";
     int be_quiet = 0;
     int csv_mode = 0;
     int show_header = 0;
     int inconsistent_file = 0;
+    int delim_arg_flag = 0;
 
     while (1) {
 
         // getopt_long stores the option index here.
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hHqd:", long_options, &option_index);
+        c = getopt_long (argc, argv, "hHqd:Q:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1) break;
@@ -193,7 +206,8 @@ int main (int argc, char *argv[])
 
             case 'd':
                 debug("option -d with value `%s'", optarg);
-                delim = optarg;
+                delim_arg = optarg;
+                delim_arg_flag = 1;
                 break;
 
             case 'h':
@@ -204,6 +218,13 @@ int main (int argc, char *argv[])
             case 'C':
                 debug("option -C");
                 csv_mode = 1;
+                break;
+
+            case 'Q':
+                debug("option -Q");
+                quote_arg = optarg;
+                check(strlen(quote_arg) == 1, "ERROR: CSV quoting character must be exactly one byte long");
+                quote = quote_arg[0];
                 break;
 
             case 'H':
@@ -229,6 +250,14 @@ int main (int argc, char *argv[])
             default:
                 usage(1);
         }
+    }
+
+    if (csv_mode && delim_arg_flag) {
+        check(strlen(delim_arg) == 1, "ERROR: CSV delimiter must be exactly one byte long");
+        delim_csv = delim_arg[0];
+    }
+    else if (!csv_mode && delim_arg_flag) {
+        delim = delim_arg;
     }
 
     if (show_header && !be_quiet) {
@@ -263,7 +292,7 @@ int main (int argc, char *argv[])
             check(file_count_csv(filename, darray) == 0, "Error counting CSV file: %s", filename);
         }
         else {
-            check(file_count(filename, darray, delim) == 0, "Error counting file: %s", filename);
+            check(file_count(filename, darray) == 0, "Error counting file: %s", filename);
         }
 
         // If we have more than one field count in this file, set the
