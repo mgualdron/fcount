@@ -11,8 +11,10 @@ Available command-line options:
     Print field (column) count and number of lines for each count.
     More than one FILE can be specified.
 
-      -d, --delimiter        the delimiting character for the input FILE(s)
+      -d, --delimiter=DELIM  the delimiting character for the input FILE(s)
       -H, --header           print a header line with the output counts
       -q, --quiet            do not output counts, but return 2 if
                              multiple field counts are detected
                              i.e. the file is inconsistent.
+          --csv              parse CSV files
+      -Q, --csv-quote        CSV quoting character (ignored unless --csv)
