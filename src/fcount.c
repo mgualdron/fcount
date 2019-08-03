@@ -83,24 +83,16 @@ static struct option long_options[] = {
 };
 
 /* Return the number of delimiters in a string */
-static unsigned int dcount(char *line, char *delim)
+static unsigned int dcount(char *line, char *delim, const int dlen)
 {
-    int i  = 0;
     int dc = 0;  // The delimiter count
-
-    int slen = strlen(line);
-    int dlen = strlen(delim);
 
     char *p = line;
 
-    if ( slen >= dlen ) {
-        for ( i = 0; i <= (slen - dlen); i++ )
-        {
-            if ( strncmp(p + i, delim, dlen) == 0 )
-            {
-                dc++;
-            }
-        }
+    while((p = strstr(p, delim)))
+    {
+       dc++;
+       p += dlen;
     }
 
     return dc;
@@ -112,6 +104,7 @@ int file_count(char *filename, DArray *darray)
     FILE *fp = NULL;
     size_t len = 0;         // allocated size for line
     ssize_t bytes_read = 0; // num of chars read
+    const unsigned int dlen = strlen(delim);
 
     if (filename[0] == '-') {
         fp = stdin;
@@ -125,7 +118,7 @@ int file_count(char *filename, DArray *darray)
     while ((bytes_read = getline(&line, &len, fp)) != -1) {
 
         // fieldcount = dcount(line, delim) + 1;
-        check(FC_array_push(darray, dcount(line, delim) + 1) == 0, "Error pushing element into darray.");
+        check(FC_array_push(darray, dcount(line, delim, dlen) + 1) == 0, "Error pushing element into darray.");
     }
 
     free(line);
