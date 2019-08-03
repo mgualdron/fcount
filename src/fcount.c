@@ -104,10 +104,8 @@ error:
 int file_count(char *filename, DArray *darray)
 {
     char *line = NULL;
-    char *end = NULL;
-    char *token = NULL;
     FILE *fp = NULL;
-    size_t len = 0;   // allocated size for line
+    size_t len = 0;         // allocated size for line
     ssize_t bytes_read = 0; // num of chars read
 
     if (filename[0] == '-') {
@@ -121,12 +119,11 @@ int file_count(char *filename, DArray *darray)
 
     while ((bytes_read = getline(&line, &len, fp)) != -1) {
 
-        // strsep() will modify it's first argument, so we make a copy:
-        end = line;
-
         fieldcount = 0;
-        while ((token = strsep(&end, delim))) {
+        char *p = strtok (line, delim);
+        while (p != NULL) {
             fieldcount++;
+            p = strtok (NULL, delim);
         }
 
         // Add the count to the dynamic array:
