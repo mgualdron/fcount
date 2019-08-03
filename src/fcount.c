@@ -82,23 +82,28 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-
-// Callback 1 for CSV support, called whenever a field is processed:
-void cb1 (void *s, size_t len, void *data)
+/* Return the number of delimiters in a string */
+static unsigned int dcount(char *line, char *delim)
 {
-    fieldcount++;
-}
+    int i  = 0;
+    int dc = 0;  // The delimiter count
 
-// Callback 2 for CSV support, called whenever a record is processed:
-void cb2 (int c, void *data)
-{
-    check(FC_array_push((DArray *)data, fieldcount) == 0, "Error pushing element into darray.");
-    fieldcount = 0;
+    int slen = strlen(line);
+    int dlen = strlen(delim);
 
-    return;
+    char *p = line;
 
-error:
-    exit(1);
+    if ( slen >= dlen ) {
+        for ( i = 0; i <= (slen - dlen); i++ )
+        {
+            if ( strncmp(p + i, delim, dlen) == 0 )
+            {
+                dc++;
+            }
+        }
+    }
+
+    return dc;
 }
 
 int file_count(char *filename, DArray *darray)
@@ -119,15 +124,8 @@ int file_count(char *filename, DArray *darray)
 
     while ((bytes_read = getline(&line, &len, fp)) != -1) {
 
-        fieldcount = 0;
-        char *p = strtok (line, delim);
-        while (p != NULL) {
-            fieldcount++;
-            p = strtok (NULL, delim);
-        }
-
-        // Add the count to the dynamic array:
-        check(FC_array_push(darray, fieldcount) == 0, "Error pushing element into darray.");
+        // fieldcount = dcount(line, delim) + 1;
+        check(FC_array_push(darray, dcount(line, delim) + 1) == 0, "Error pushing element into darray.");
     }
 
     free(line);
@@ -137,6 +135,24 @@ int file_count(char *filename, DArray *darray)
 
 error:
     return -1;
+}
+
+// Callback 1 for CSV support, called whenever a field is processed:
+void cb1 (void *s, size_t len, void *data)
+{
+    fieldcount++;
+}
+
+// Callback 2 for CSV support, called whenever a record is processed:
+void cb2 (int c, void *data)
+{
+    check(FC_array_push((DArray *)data, fieldcount) == 0, "Error pushing element into darray.");
+    fieldcount = 0;
+
+    return;
+
+error:
+    exit(1);
 }
 
 int file_count_csv(char *filename, DArray *darray)
