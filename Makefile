@@ -37,7 +37,7 @@ tests:
 
 # The main executable
 $(TARGET_BIN):
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $(SOURCES_BIN) $(TARGET_LIB) -lcsv
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $(SOURCES_BIN) $(TARGET_LIB) -l:libcsv.a
 
 # The Cleaner
 clean:
