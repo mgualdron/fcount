@@ -25,7 +25,7 @@
 
 static const char *program_name = "fcount";
 static unsigned int fieldcount = 0;
-// static unsigned long linecount = 0;
+static unsigned long linecount = 0;
 static char *delim_arg = "\t";
 static char *delim = "\t";
 static char delim_csv = CSV_COMMA;
@@ -60,10 +60,11 @@ More than one FILE can be specified.\n\
 \n\
   -d, --delimiter=DELIM  the delimiting character for the input FILE(s)\n\
   -H, --header           print a header line with the output counts\n\
+  -l, --line-count       print the record-count only\n\
   -q, --quiet            do not output counts, but return 2 if\n\
                          multiple field counts are detected\n\
                          i.e. the file is inconsistent.\n\
-      --csv              parse CSV files\n\
+  -C, --csv              parse CSV files\n\
   -Q, --csv-quote        CSV quoting character (ignored unless --csv)\n\
 ");
     }
@@ -73,12 +74,13 @@ More than one FILE can be specified.\n\
 
 
 static struct option long_options[] = {
-    {"quiet",     no_argument,       0, 'q'},
-    {"csv",       no_argument,       0, 'C'},
-    {"header",    no_argument,       0, 'H'},
-    {"delimiter", required_argument, 0, 'd'},
-    {"csv-quote", required_argument, 0, 'Q'},
-    {"help",      no_argument,       0, 'h'},
+    {"quiet",      no_argument,       0, 'q'},
+    {"csv",        no_argument,       0, 'C'},
+    {"header",     no_argument,       0, 'H'},
+    {"delimiter",  required_argument, 0, 'd'},
+    {"line-count", no_argument,       0, 'l'},
+    {"csv-quote",  required_argument, 0, 'Q'},
+    {"help",       no_argument,       0, 'h'},
     {0, 0, 0, 0}
 };
 
@@ -130,6 +132,36 @@ error:
     return -1;
 }
 
+int line_count(char *filename)
+{
+    char *line = NULL;
+    FILE *fp = NULL;
+    size_t len = 0;         // allocated size for line
+    ssize_t bytes_read = 0; // num of chars read
+    const unsigned int dlen = strlen(delim);
+
+    if (filename[0] == '-') {
+        fp = stdin;
+    }
+    else {
+        fp = fopen(filename, "rb");
+    }
+
+    check(fp != NULL, "Error opening file: %s.", filename);
+
+    while ((bytes_read = getline(&line, &len, fp)) != -1) {
+        linecount++;
+    }
+
+    free(line);
+    fclose(fp);
+
+    return 0;
+
+error:
+    return -1;
+}
+
 // Callback 1 for CSV support, called whenever a field is processed:
 void cb1 (void *s, size_t len, void *data)
 {
@@ -163,11 +195,9 @@ int file_count_csv(char *filename, DArray *darray)
     }
 
     check(fp != NULL, "Error opening file: %s.", filename);
-
     check(csv_init(&p, 0) == 0, "Error initializing CSV parser.");
 
     csv_set_delim(&p, delim_csv);
-
     csv_set_quote(&p, quote);
 
     while ((bytes_read=fread(buf, 1, 1024, fp)) > 0) {
@@ -175,9 +205,47 @@ int file_count_csv(char *filename, DArray *darray)
     }
 
     check(csv_fini(&p, cb1, cb2, darray) == 0, "Error finishing CSV processing.");
-
     csv_free(&p);
+    fclose(fp);
 
+    return 0;
+
+error:
+    return -1;
+}
+
+// Line-count Callback 2 for CSV support, called whenever a record is processed:
+void cb2_lines (int c, void *data)
+{
+    linecount++;
+}
+
+int line_count_csv(char *filename)
+{
+    struct csv_parser p;
+    char buf[1024];
+    FILE *fp = NULL;
+    size_t bytes_read = 0; // num of chars read
+
+    if (filename[0] == '-') {
+        fp = stdin;
+    }
+    else {
+        fp = fopen(filename, "rb");
+    }
+
+    check(fp != NULL, "Error opening file: %s.", filename);
+    check(csv_init(&p, 0) == 0, "Error initializing CSV parser.");
+
+    csv_set_delim(&p, delim_csv);
+    csv_set_quote(&p, quote);
+
+    while ((bytes_read=fread(buf, 1, 1024, fp)) > 0) {
+        check(csv_parse(&p, buf, bytes_read, NULL, cb2_lines, NULL) == bytes_read, "Error while parsing file: %s", csv_strerror(csv_error(&p)));
+    }
+
+    check(csv_fini(&p, NULL, cb2_lines, NULL) == 0, "Error finishing CSV processing.");
+    csv_free(&p);
     fclose(fp);
 
     return 0;
@@ -192,6 +260,7 @@ int main (int argc, char *argv[])
     int be_quiet = 0;
     int csv_mode = 0;
     int show_header = 0;
+    int count_lines = 0;
     int inconsistent_file = 0;
     int delim_arg_flag = 0;
 
@@ -200,7 +269,7 @@ int main (int argc, char *argv[])
         // getopt_long stores the option index here.
         int option_index = 0;
 
-        c = getopt_long (argc, argv, "hHqd:Q:", long_options, &option_index);
+        c = getopt_long (argc, argv, "hHClqd:Q:", long_options, &option_index);
 
         // Detect the end of the options.
         if (c == -1) break;
@@ -238,6 +307,11 @@ int main (int argc, char *argv[])
                 show_header = 1;
                 break;
 
+            case 'l':
+                debug("option -l");
+                count_lines = 1;
+                break;
+
             case 'q':
                 debug("option -q");
                 be_quiet = 1;
@@ -267,7 +341,12 @@ int main (int argc, char *argv[])
     }
 
     if (show_header && !be_quiet) {
-        printf("field_count\trecords\tfile\n");
+        if (count_lines) {
+            printf("records\tfile\n");
+        }
+        else {
+            printf("field_count\trecords\tfile\n");
+        }
     }
 
     int j = optind;  // A copy of optind (the number of options at the command-line),
@@ -278,9 +357,6 @@ int main (int argc, char *argv[])
     do {
 
         char *filename = NULL;
-
-        // The dynamic array that will hold all field counts:
-        DArray *darray = DArray_create(sizeof(FCount), 10);
 
         // Assume STDIN if no additional arguments, else loop through them:
         if (optind == argc) {
@@ -293,25 +369,41 @@ int main (int argc, char *argv[])
             break;
         }
 
-        // Count the file:
-        if (csv_mode) {
-            check(file_count_csv(filename, darray) == 0, "Error counting CSV file: %s", filename);
+        if (count_lines) {
+
+            if (csv_mode) {
+                check(line_count_csv(filename) == 0, "Error counting CSV file: %s", filename);
+            }
+            else {
+                check(line_count(filename) == 0, "Error counting file: %s", filename);
+            }
+            printf("%ld\t%s\n", linecount, filename);
         }
         else {
-            check(file_count(filename, darray) == 0, "Error counting file: %s", filename);
+            // The dynamic array that will hold all field counts:
+            DArray *darray = DArray_create(sizeof(FCount), 10);
+
+            // Count the file:
+            if (csv_mode) {
+                check(file_count_csv(filename, darray) == 0, "Error counting CSV file: %s", filename);
+            }
+            else {
+                check(file_count(filename, darray) == 0, "Error counting file: %s", filename);
+            }
+
+            // If we have more than one field count in this file, set the
+            // inconsistent_file flag to 2:
+            if (darray->end > 1) {
+                inconsistent_file = 2;
+            }
+
+            if (!be_quiet) {
+                FC_array_sort(darray, FC_cmp);
+                FC_array_print(darray, filename);
+            }
+            FC_array_destroy(darray);
         }
 
-        // If we have more than one field count in this file, set the
-        // inconsistent_file flag to 2:
-        if (darray->end > 1) {
-            inconsistent_file = 2;
-        }
-
-        if (!be_quiet) {
-            FC_array_sort(darray, FC_cmp);
-            FC_array_print(darray, filename);
-        }
-        FC_array_destroy(darray);
 
         j++;
 
