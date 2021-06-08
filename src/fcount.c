@@ -378,6 +378,7 @@ int main (int argc, char *argv[])
                 check(line_count(filename) == 0, "Error counting file: %s", filename);
             }
             printf("%ld\t%s\n", linecount, filename);
+            linecount = 0;
         }
         else {
             // The dynamic array that will hold all field counts:
