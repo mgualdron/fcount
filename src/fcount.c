@@ -59,11 +59,12 @@ More than one FILE can be specified.\n\
       printf ("\
 \n\
   -d, --delimiter=DELIM  the delimiting character for the input FILE(s)\n\
+                         (the default is a TAB)\n\
   -H, --header           print a header line with the output counts\n\
-  -l, --line-count       print the record-count only\n\
+  -l, --line-count       print the record-count only (like wc -l)\n\
   -q, --quiet            do not output counts, but return 2 if\n\
                          multiple field counts are detected\n\
-                         i.e. the file is inconsistent.\n\
+                         (i.e. the file is inconsistent)\n\
   -C, --csv              parse CSV files\n\
   -Q, --csv-quote        CSV quoting character (ignored unless --csv)\n\
 ");

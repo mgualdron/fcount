@@ -12,9 +12,11 @@ Available command-line options:
     More than one FILE can be specified.
 
       -d, --delimiter=DELIM  the delimiting character for the input FILE(s)
+                             (the default is a TAB)
       -H, --header           print a header line with the output counts
+      -l, --line-count       print the record-count only (like wc -l)
       -q, --quiet            do not output counts, but return 2 if
                              multiple field counts are detected
-                             i.e. the file is inconsistent.
-          --csv              parse CSV files
+                             (i.e. the file is inconsistent)
+      -C, --csv              parse CSV files
       -Q, --csv-quote        CSV quoting character (ignored unless --csv)
