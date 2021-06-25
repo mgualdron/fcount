@@ -22,6 +22,7 @@
 #include <lcthw/dbg.h>
 #include "fc_funcs.h"
 #include <csv.h>
+#define NUL_REPLACEMENT_CHARACTER 63   // This is a '?'
 
 static const char *program_name = "fcount";
 static unsigned int fieldcount = 0;
@@ -85,12 +86,22 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
+
+static void replace_nulls(char *line, ssize_t bytes_read)
+{
+    for (ssize_t i = 0; i < bytes_read; i++) {
+        if ( line[i] == 0 ) { line[i] = NUL_REPLACEMENT_CHARACTER; }
+    }
+}
+
 /* Return the number of delimiters in a string */
-static unsigned int dcount(char *line, char *delim, const int dlen)
+static unsigned int dcount(char *line, char *delim, const int dlen, ssize_t bytes_read)
 {
     int dc = 0;  // The delimiter count
-
     char *p = line;
+
+    // A smaller strlen tells us we have NULs in the line string:
+    if ( strlen(line) < (size_t)bytes_read ) { replace_nulls(line, bytes_read); }
 
     while((p = strstr(p, delim)))
     {
@@ -121,7 +132,7 @@ int file_count(char *filename, DArray *darray)
     while ((bytes_read = getline(&line, &len, fp)) != -1) {
 
         // fieldcount = dcount(line, delim) + 1;
-        check(FC_array_push(darray, dcount(line, delim, dlen) + 1) == 0, "Error pushing element into darray.");
+        check(FC_array_push(darray, dcount(line, delim, dlen, bytes_read) + 1) == 0, "Error pushing element into darray.");
     }
 
     free(line);
