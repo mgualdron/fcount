@@ -1,9 +1,94 @@
-bin
-build
-libcsv
+# Prerequisites
+*.d
+
+# Tags
+tags
+
+# Object files
 *.o
-tests/tests.log
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+bin/
 tests/darray_tests
-tests/darray_tests.exe
-*.gc*
-*.dSYM
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# Test ouput
+*.log
+
+# Distribution files
+*.tar.gz
+
+# Autotools stuff
+*~
+*.trs
+aclocal.m4
+autom4te.cache
+build-aux
+.deps
+.dirstamp
+config.h
+config.h.in
+config.status
+configure
+Makefile
+Makefile.in
+stamp-h1
+
+# Gnulib stuff
+lib/inttypes.h
+lib/limits.h
+lib/locale.h
+lib/sys/
+lib/stdio.h
+lib/string.h
+lib/uchar.h
+lib/unictype.h
+lib/unistr.h
+lib/unitypes.h
+lib/uniwidth.h
+lib/wchar.h
+lib/wctype.h

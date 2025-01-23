@@ -1,0 +1,29 @@
+2021-06-25: Added better handling of embedded NUL characters.
+2021-06-08: Help text updates.
+2021-06-08: Reset the linecount back to zero when processing multiple files.
+2021-06-07: Added -l (--line-count) option to count records only.
+2020-05-06: Made libcsv linking static to allow the binary to run on machines without this library.
+2019-08-03: Perfomance improvement by switching to strstr().
+2019-08-03: Better support for compound delimiters.
+2019-08-02: Switched from strsep() to strtok() to support compound delimiters.
+2017-04-07: Merge branch 'csv'
+2017-04-07: Added CSV-related options to README.md.
+2017-04-05: Minor fix to README.txt.
+2016-05-22: Added -Q option in support of CSV mode.
+2016-05-22: Minor adjustment to includes
+2016-05-20: Minor adjustments to library/include locations.
+2016-05-20: Minor bug-fix and adjustments to install destination
+2016-05-02: Added support for CSV files with libcsv, and new -C option.
+2016-04-28: Minor comment fix
+2016-04-27: Added support for sorting the output by record count, and fixed a memory leak in use of strsep().
+2016-04-26: Added description of available options.
+2016-04-26: Simplified FCount struct by removing filename.
+2016-04-25: Moved field-count functions to new fc_funcs.c file.
+2016-04-25: Minor changes after rename of fc_funcs.h
+2016-04-25: renamed fcount.h -> fc_funcs.h
+2016-04-25: Minor fixes to deal with invalid command-line options.
+2016-04-25: New --help and support for input from STDIN.
+2016-04-21: New .gitignore file
+2016-04-19: removed object file
+2016-04-19: removed object file
+2016-04-19: first commit

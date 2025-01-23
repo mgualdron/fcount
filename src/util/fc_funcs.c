@@ -1,6 +1,6 @@
-#include <lcthw/darray.h>
-#include <lcthw/dbg.h>
-#include "fc_funcs.h"
+#include <util/darray.h>
+#include <util/dbg.h>
+#include "util/fc_funcs.h"
 
 
 // A function to create FCount struct instances:

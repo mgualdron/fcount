@@ -18,10 +18,10 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
-#include <lcthw/darray.h>
-#include <lcthw/dbg.h>
-#include "fc_funcs.h"
-#include <csv.h>
+#include <util/darray.h>
+#include <util/dbg.h>
+#include <util/fc_funcs.h>
+#include <util/csv.h>
 #define NUL_REPLACEMENT_CHARACTER 63   // This is a '?'
 
 static const char *program_name = "fcount";
