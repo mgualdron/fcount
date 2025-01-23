@@ -1,5 +1,5 @@
 # fcount
-![build status](https://github.com/github/fcount/actions/workflows/c-cpp.yml/badge.svg)
+![build status](https://github.com/mgualdron/fcount/actions/workflows/c-cpp.yml/badge.svg)
 
 Count the number of fields (columns) in every line of a delimited text file.
 
